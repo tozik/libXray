@@ -37,6 +37,10 @@ jobs:
               gomobile init
               go get -d golang.org/x/mobile/cmd/gomobile
               gomobile bind -target ios,iossimulator,macos -iosversion 15.0
+
+      - name: Zip xcframework
+        run: |
+          zip -ry LibXray.xcframework.zip ./LibXray.xcframework
               
       - name: Upload Release
         uses: softprops/action-gh-release@v1
