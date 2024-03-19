@@ -1,29 +1,17 @@
 // swift-tools-version: 5.7
-
 import PackageDescription
 
 let package = Package(
-  name: "libXray",
-  platforms: [.iOS(.v16), .macOS(.v12)],
+  name: "XrayKit",
+  platforms: [.iOS(.v15), .macOS(.v12)],
   products: [
-    .library(
-        name: "libXray",
-        targets: ["libXray"]
-    )
+    .library(name: "LibXrayCustom", targets: ["LibXray"])
   ],
   targets: [
-    .target(
-        name: "libXray",
-        dependencies: ["libXray"]
-    ),
-    .target(
-        name: "libXray",
-        publicHeadersPath: "."
-    ),
     .binaryTarget(
-        name: "libXray",
-        url: "https://github.com/tozik/libXray/releases/download/VERSION/LibXray.xcframework.zip",
-        checksum: "CHECKSUM"
+      name: "LibXray",
+      url: "https://github.com/tozik/libXray/releases/download/VERSION/LibXray.xcframework.zip"",
+      checksum: "CHECKSUM"
     )
   ]
 )
