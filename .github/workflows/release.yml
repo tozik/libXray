@@ -44,7 +44,8 @@ jobs:
 
       - name: Rende Template
         run: |
-          export TEMP=`shasum -a 256 LibXray.xcframework.zip`
+          ls
+          export TEMP=`shasum -a 256 ./LibXray.xcframework.zip`
           export CHECKSUM=${TEMP:0:64}
           cd Templates
           sed -i "_bak" "s/VERSION/${{ github.event.inputs.version }}/g" Package.template
