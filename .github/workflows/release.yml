@@ -38,9 +38,32 @@ jobs:
               go get -d golang.org/x/mobile/cmd/gomobile
               gomobile bind -target ios,iossimulator,macos -iosversion 15.0
 
+
       - name: Zip xcframework
         run: |
           zip -ry LibXray.xcframework.zip ./LibXray.xcframework
+
+      - name: Rende Template
+        run: |
+          export TEMP=`shasum -a 256 ./LibXray.xcframework.zip`
+          export CHECKSUM=${TEMP:0:64}
+          cd Templates
+          sed -i "_bak" "s/VERSION/${{ github.event.inputs.version }}/g" Package.template
+          sed -i "_bak" "s/CHECKSUM/${CHECKSUM}/g" Package.template
+          
+      - name: Update Package.swift
+        run: |
+          rm -f Package.swift
+          cp ./Templates/Package.template Package.swift
+          
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: LibXray Release ${{ github.event.inputs.version }}!!!
+          commit_user_name: Tozik
+          commit_user_email: tozika@inbox.ru
+          commit_author: Aleks Tozik <tozika@inbox.ru>
+          tagging_message: ${{ github.event.inputs.version }}
+          file_pattern: 'Package.swift'
               
       - name: Upload Release
         uses: softprops/action-gh-release@v1
