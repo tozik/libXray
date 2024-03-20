@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-  name: "XrayKit",
+  name: "libXray",
   platforms: [.iOS(.v15), .macOS(.v12)],
   products: [
-    .library(name: "LibXrayCustom", targets: ["LibXray"])
+    .library(name: "libXray", targets: ["libXray"])
   ],
   targets: [
     .binaryTarget(
-      name: "LibXray",
+      name: "libXray",
       url: "https://github.com/tozik/libXray/releases/download/VERSION/LibXray.xcframework.zip"",
       checksum: "CHECKSUM"
     )
