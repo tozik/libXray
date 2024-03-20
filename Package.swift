@@ -7,11 +7,24 @@ let package = Package(
   products: [
     .library(name: "libXray", targets: ["libXray"])
   ],
+  dependencies: [
+      .package(url: "LibXray.xcframework"),
+  ],
   targets: [
-    .binaryTarget(
-      name: "libXray",
-      url: "https://github.com/tozik/libXray/releases/download/1.8.9/LibXray.xcframework.zip"",
-      checksum: "37ed6fac9a5e92988c37a4821f28375168584429e37f5304dd8b412f2de06727"
-    )
+      .binaryTarget(
+          name: "LibXray",
+          // iOS
+          path: "LibXray.xcframework/ios-arm64/LibXray.framework"
+      ),
+      .binaryTarget(
+          name: "LibXray",
+          // iOS Simulator
+          path: "LibXray.xcframework/ios-arm64_x86_64-simulator/LibXray.framework"
+      ),
+      .binaryTarget(
+          name: "LibXray",
+          // macOS
+          path: "LibXray.xcframework/macos-arm64_x86_64/LibXray.framework"
+      ),
   ]
 )
