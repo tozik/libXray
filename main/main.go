@@ -63,7 +63,7 @@ func parseCallResponse(text string) (nodep.CallResponse[string], error) {
 }
 
 func makeLoadGeoDataRequest(datDir string, name string, geoType string) (string, error) {
-	var request libXray.CountGeoDataRequest
+	var request libXray.CountGeoDataRequestVPNS
 	request.DatDir = datDir
 	request.Name = name
 	request.GeoType = geoType
@@ -89,7 +89,7 @@ func downloadDat(url string, datDir string, fileName string, geoType string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	res := libXray.CountGeoData(geoReq)
+	res := libXray.CountGeoDataVPNS(geoReq)
 	resp, err := parseCallResponse(res)
 	if err != nil || !resp.Success {
 		fmt.Println("Failed to load geosite:", res)

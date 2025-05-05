@@ -1,4 +1,4 @@
-package libXray
+package libXrayVPNS
 
 import (
 	"encoding/base64"
@@ -117,10 +117,10 @@ func handleTestResponse(response string, t *testing.T) {
 
 	// Check if the "success" field is true
 	if success, ok := result["success"].(bool); !ok || !success {
-		t.Fatalf("TestXray failed: %v", response)
+		t.Fatalf("TestXrayVPNS failed: %v", response)
 	}
 
-	t.Log("TestXray passed successfully", string(decoded))
+	t.Log("TestXrayVPNS passed successfully", string(decoded))
 }
 
 // TestRunXrayWithVmess tests running Xray with VMess configuration
@@ -149,7 +149,7 @@ func TestRunXrayWithVmess(t *testing.T) {
 
 	// Create a request for testing Xray
 	datDir := filepath.Join(projectRoot, "dat")
-	request := TestXrayRequest{
+	request := TestXrayRequestVPNS{
 		DatDir:     datDir,
 		ConfigPath: configPath,
 	}
@@ -160,8 +160,8 @@ func TestRunXrayWithVmess(t *testing.T) {
 		t.Fatalf("Failed to encode request: %v", err)
 	}
 
-	// Call TestXray with the base64-encoded request
-	response := TestXray(base64Request)
+	// Call TestXrayVPNS with the base64-encoded request
+	response := TestXrayVPNS(base64Request)
 
 	// Handle and check the response
 	handleTestResponse(response, t)
@@ -193,7 +193,7 @@ func TestRunXray(t *testing.T) {
 
 	// Create a request for running Xray
 	datDir := filepath.Join(projectRoot, "dat")
-	runRequest := RunXrayRequest{
+	runRequest := RunXrayRequestVPNS{
 		DatDir:     datDir,
 		ConfigPath: configPath, // Set max memory limit for Xray
 	}
@@ -204,8 +204,8 @@ func TestRunXray(t *testing.T) {
 		t.Fatalf("Failed to encode request: %v", err)
 	}
 
-	// Call RunXray with the base64-encoded request
-	response := RunXray(base64Request)
+	// Call RunXrayVPNS with the base64-encoded request
+	response := RunXrayVPNS(base64Request)
 
 	// Handle and check the response
 	handleTestResponse(response, t)
@@ -213,8 +213,8 @@ func TestRunXray(t *testing.T) {
 
 // TestXrayVersion tests the XrayVersion function.
 func TestXrayVersion(t *testing.T) {
-	// Call the XrayVersion function
-	version := XrayVersion()
+	// Call the XrayVersionVPNS function
+	version := XrayVersionVPNS()
 
 	// Decode the base64 response to get the version string
 	decodedVersion, err := base64.StdEncoding.DecodeString(version)
