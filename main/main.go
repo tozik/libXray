@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	libXray "github.com/xtls/libxray"
+	TunnelX "github.com/xtls/libxray"
 	"github.com/xtls/libxray/nodep"
 )
 
@@ -63,7 +63,7 @@ func parseCallResponse(text string) (nodep.CallResponse[string], error) {
 }
 
 func makeLoadGeoDataRequest(datDir string, name string, geoType string) (string, error) {
-	var request libXray.CountGeoDataRequestVPNS
+	var request TunnelX.CountGeoDataRequestVPNS
 	request.DatDir = datDir
 	request.Name = name
 	request.GeoType = geoType
@@ -89,7 +89,7 @@ func downloadDat(url string, datDir string, fileName string, geoType string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	res := libXray.CountGeoDataVPNS(geoReq)
+	res := TunnelX.CountGeoDataVPNS(geoReq)
 	resp, err := parseCallResponse(res)
 	if err != nil || !resp.Success {
 		fmt.Println("Failed to load geosite:", res)

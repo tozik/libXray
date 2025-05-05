@@ -1,5 +1,5 @@
-// libXray is an Xray wrapper focusing on improving the experience of Xray-core mobile development.
-package libXrayVPNS
+// TunnelX is an Xray wrapper focusing on improving the experience of Xray-core mobile development.
+package TunnelXVPNS
 
 import (
 	"encoding/base64"

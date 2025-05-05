@@ -1,4 +1,4 @@
-package libXrayVPNS
+package TunnelXVPNS
 
 import (
 	"encoding/base64"

@@ -1,6 +1,6 @@
 //go:build android
 
-package libXrayVPNS
+package TunnelXVPNS
 
 import (
 	"time"
