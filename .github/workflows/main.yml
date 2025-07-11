@@ -7,6 +7,11 @@ on:
         description: 'Release version'     
         required: true
         type: string
+      branch:
+        description: 'Branch to build from'
+        required: true
+        type: string
+        default: 'main'
       # tag:
       #   description: 'Git Tag to checkout'
       #   required: true
@@ -30,6 +35,7 @@ jobs:
           fetch-depth: 0  # Обеспечить полный клон репозитория
           repository: 'tozik/libXray'
           path: 'xray'
+          ref: ${{ github.event.inputs.branch }}
           # ref: ${{ github.event.inputs.tag }}
 
       # Clone Xray-Core
