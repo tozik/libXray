@@ -1,0 +1,114 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'     
+        required: true
+        type: string
+      # tag:
+      #   description: 'Git Tag to checkout'
+      #   required: true
+      #   type: string
+
+jobs:
+  release:
+    runs-on: macOS-15
+    steps:
+
+      # Checkout основного репозитория (в котором запускается workflow)
+      - name: Checkout main repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Обеспечить полный клон репозитория
+
+      # Checkout libXray в поддиректорию 'xray'
+      - name: Checkout libXray
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Обеспечить полный клон репозитория
+          repository: 'tozik/libXray'
+          path: 'xray'
+          # ref: ${{ github.event.inputs.tag }}
+
+      # Clone Xray-Core
+      - name: Clone Xray-Core
+        run: |
+          git clone https://github.com/XTLS/Xray-core.git xray/Xray-core
+      # # Fix Xray-Core path
+      - name: Adjust Xray-Core Path
+        run: |
+          ln -s "$(pwd)/xray/Xray-core" "$(pwd)/xray/../Xray-core"
+      # # Debug directory structure
+      - name: Debug Directory
+        run: |
+          echo "Current Directory: $(pwd)"
+          echo "Root Directory Contents:"
+          ls -la
+          echo "xray Directory Contents:"
+          ls -la xray
+          echo "Xray-core Directory via SymLink:"
+          ls -la xray/Xray-core
+      # Setup Go environment
+      - name: Setup Go
+        uses: actions/setup-go@v3.5.0
+        with:
+          go-version: '1.22.4'
+
+      # Prepare Go modules
+      # go mod init github.com/XTLS/libXray
+      # rm -f go.mod go.sum
+
+      - name: Prepare GO
+        run: |
+          cd xray
+          go mod tidy
+      # Build xcframework
+      - name: Build xcframework
+        run: |
+          cd xray
+          python3 build/main.py apple gomobile
+          zip -ry ./LibXray.xcframework.zip ./LibXray.xcframework
+      - name: Generate Package.swift
+        run: |
+          export CHECKSUM=$(shasum -a 256 xray/LibXray.xcframework.zip | awk '{print $1}')
+          echo "// swift-tools-version: 5.7" > Package.swift
+          echo "" >> Package.swift
+          echo "import PackageDescription" >> Package.swift
+          echo "" >> Package.swift
+          echo "let package = Package(" >> Package.swift
+          echo "  name: \"LibXray\"," >> Package.swift
+          echo "  platforms: [.iOS(.v15), .macOS(.v13)]," >> Package.swift
+          echo "  products: [" >> Package.swift
+          echo "    .library(name: \"LibXray\", targets: [\"LibXray\"])" >> Package.swift
+          echo "  ]," >> Package.swift
+          echo "  targets: [" >> Package.swift
+          echo "    .binaryTarget(" >> Package.swift
+          echo "      name: \"LibXray\"," >> Package.swift
+          echo "      url: \"https://github.com/tozik/BuildLibXray/releases/download/${{ github.event.inputs.version }}/LibXray.xcframework.zip\"," >> Package.swift
+          echo "      checksum: \"$CHECKSUM\"" >> Package.swift
+          echo "    )" >> Package.swift
+          echo "  ]" >> Package.swift
+          echo ")" >> Package.swift
+          
+      # Пушим артефакт и Package.swift
+      - name: Commit Package.swift
+        run: |
+          # Выводим список файлов в текущем каталоге и проверяем артефакт
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add Package.swift
+          git commit -m "Update Package.swift for version ${{ github.event.inputs.version }}"
+          git push origin HEAD
+          
+      # Загрузим релизный артефакт в публичный репозиторий
+      - name: Upload release asset to second repo
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          tag_name: ${{ github.event.inputs.version }}
+          body: 'Release built from source'
+          files: xray/LibXray.xcframework.zip
+          repository: 'tozik/BuildLibXray'
+          token: ${{ secrets.SECOND_REPO_TOKEN }}
