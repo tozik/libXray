@@ -15,11 +15,6 @@ on:
         options:
           - 'main'
           - 'libxray'
-          - 'custom'
-      custom_branch:
-        description: 'Custom branch name (only if "custom" is selected above)'
-        required: false
-        type: string
       # tag:
       #   description: 'Git Tag to checkout'
       #   required: true
@@ -37,19 +32,19 @@ jobs:
           curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             "https://api.github.com/repos/tozik/libXray/branches" | \
             jq -r '.[].name' | head -20 | while read branch; do
-              if [ "$branch" = "${{ github.event.inputs.branch == 'custom' && github.event.inputs.custom_branch || github.event.inputs.branch }}" ]; then
+              if [ "$branch" = "${{ github.event.inputs.branch }}" ]; then
                 echo "- ✅ \`$branch\` (selected)" >> $GITHUB_STEP_SUMMARY
               else
                 echo "- \`$branch\`" >> $GITHUB_STEP_SUMMARY
               fi
             done
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Building from branch: **${{ github.event.inputs.branch == 'custom' && github.event.inputs.custom_branch || github.event.inputs.branch }}**" >> $GITHUB_STEP_SUMMARY
+          echo "Building from branch: **${{ github.event.inputs.branch }}**" >> $GITHUB_STEP_SUMMARY
 
       # Проверяем существование выбранной ветки
       - name: Verify branch exists
         run: |
-          SELECTED_BRANCH="${{ github.event.inputs.branch == 'custom' && github.event.inputs.custom_branch || github.event.inputs.branch }}"
+          SELECTED_BRANCH="${{ github.event.inputs.branch }}"
           echo "Checking if branch '$SELECTED_BRANCH' exists..."
           
           BRANCH_EXISTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -80,7 +75,7 @@ jobs:
           fetch-depth: 0  # Обеспечить полный клон репозитория
           repository: 'tozik/libXray'
           path: 'xray'
-          ref: ${{ github.event.inputs.branch == 'custom' && github.event.inputs.custom_branch || github.event.inputs.branch }}
+          ref: ${{ github.event.inputs.branch }}
           # ref: ${{ github.event.inputs.tag }}
 
       # Clone Xray-Core
