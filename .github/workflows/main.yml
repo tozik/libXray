@@ -10,8 +10,16 @@ on:
       branch:
         description: 'Branch to build from'
         required: true
-        type: string
+        type: choice
         default: 'main'
+        options:
+          - 'main'
+          - 'libxray'
+          - 'custom'
+      custom_branch:
+        description: 'Custom branch name (only if "custom" is selected above)'
+        required: false
+        type: string
       # tag:
       #   description: 'Git Tag to checkout'
       #   required: true
@@ -21,6 +29,43 @@ jobs:
   release:
     runs-on: macOS-15
     steps:
+
+      # Показываем доступные ветки перед началом сборки
+      - name: List available branches
+        run: |
+          echo "## Available branches in tozik/libXray:" >> $GITHUB_STEP_SUMMARY
+          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/tozik/libXray/branches" | \
+            jq -r '.[].name' | head -20 | while read branch; do
+              if [ "$branch" = "${{ github.event.inputs.branch == 'custom' && github.event.inputs.custom_branch || github.event.inputs.branch }}" ]; then
+                echo "- ✅ \`$branch\` (selected)" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "- \`$branch\`" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Building from branch: **${{ github.event.inputs.branch == 'custom' && github.event.inputs.custom_branch || github.event.inputs.branch }}**" >> $GITHUB_STEP_SUMMARY
+
+      # Проверяем существование выбранной ветки
+      - name: Verify branch exists
+        run: |
+          SELECTED_BRANCH="${{ github.event.inputs.branch == 'custom' && github.event.inputs.custom_branch || github.event.inputs.branch }}"
+          echo "Checking if branch '$SELECTED_BRANCH' exists..."
+          
+          BRANCH_EXISTS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/tozik/libXray/branches/$SELECTED_BRANCH" | \
+            jq -r '.name // "not_found"')
+          
+          if [ "$BRANCH_EXISTS" = "not_found" ]; then
+            echo "❌ Branch '$SELECTED_BRANCH' does not exist in tozik/libXray repository!"
+            echo "Available branches:"
+            curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/tozik/libXray/branches" | \
+              jq -r '.[].name' | head -20
+            exit 1
+          else
+            echo "✅ Branch '$SELECTED_BRANCH' exists and will be used for build"
+          fi
 
       # Checkout основного репозитория (в котором запускается workflow)
       - name: Checkout main repository
@@ -35,7 +80,7 @@ jobs:
           fetch-depth: 0  # Обеспечить полный клон репозитория
           repository: 'tozik/libXray'
           path: 'xray'
-          ref: ${{ github.event.inputs.branch }}
+          ref: ${{ github.event.inputs.branch == 'custom' && github.event.inputs.custom_branch || github.event.inputs.branch }}
           # ref: ${{ github.event.inputs.tag }}
 
       # Clone Xray-Core

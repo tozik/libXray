@@ -1,0 +1,51 @@
+name: Branch Selector for Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
+        type: string
+
+jobs:
+  get-branches:
+    runs-on: ubuntu-latest
+    outputs:
+      branches: ${{ steps.get-branches.outputs.branches }}
+    steps:
+      - name: Get branches from libXray repo
+        id: get-branches
+        run: |
+          # Получаем список веток из репозитория tozik/libXray
+          BRANCHES=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/tozik/libXray/branches" | \
+            jq -r '.[].name' | head -20)
+          
+          echo "Available branches:"
+          echo "$BRANCHES"
+          
+          # Преобразуем в JSON массив для использования в matrix
+          BRANCHES_JSON=$(echo "$BRANCHES" | jq -R -s -c 'split("\n")[:-1]')
+          echo "branches=$BRANCHES_JSON" >> $GITHUB_OUTPUT
+          
+          # Также сохраняем в артефакт для просмотра
+          echo "$BRANCHES" > available_branches.txt
+          
+      - name: Upload branches list
+        uses: actions/upload-artifact@v3
+        with:
+          name: available-branches
+          path: available_branches.txt
+          
+      - name: Show branches selection
+        run: |
+          echo "## Available branches for building:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "To build from a specific branch, manually trigger the 'Release' workflow with one of these branches:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/tozik/libXray/branches" | \
+            jq -r '.[].name' | head -20 | while read branch; do
+              echo "- \`$branch\`" >> $GITHUB_STEP_SUMMARY
+            done
